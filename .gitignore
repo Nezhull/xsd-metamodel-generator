@@ -1,0 +1,6 @@
+bin
+target
+.metadata
+.classpath
+.settings
+.project/xsd-metamodel-generator/
