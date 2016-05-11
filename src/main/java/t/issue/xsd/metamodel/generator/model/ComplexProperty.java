@@ -1,4 +1,4 @@
-package lt.nezsoft.xsd.metamodel.generator.model;
+package t.issue.xsd.metamodel.generator.model;
 
 /**
  * Class representing complex type property

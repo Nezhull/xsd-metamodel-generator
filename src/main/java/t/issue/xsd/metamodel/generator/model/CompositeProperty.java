@@ -1,4 +1,4 @@
-package lt.nezsoft.xsd.metamodel.generator.model;
+package t.issue.xsd.metamodel.generator.model;
 
 import java.util.ArrayList;
 import java.util.List;

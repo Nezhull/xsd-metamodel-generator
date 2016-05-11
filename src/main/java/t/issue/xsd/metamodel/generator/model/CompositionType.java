@@ -1,9 +1,8 @@
-package lt.nezsoft.xsd.metamodel.generator.model;
-
+package t.issue.xsd.metamodel.generator.model;
 
 /**
  * Enumeration representing xsd element composition types
- * 
+ *
  * @author Pavel
  *
  */

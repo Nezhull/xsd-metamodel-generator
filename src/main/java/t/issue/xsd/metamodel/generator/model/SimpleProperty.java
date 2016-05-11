@@ -1,15 +1,14 @@
-package lt.nezsoft.xsd.metamodel.generator.model;
-
+package t.issue.xsd.metamodel.generator.model;
 
 /**
  * Class representing simple type property
- * 
+ *
  * @author Pavel
  *
  */
 public class SimpleProperty extends Property {
 	private static final long serialVersionUID = -6124160118765852754L;
-	
+
 	private SimpleTypeConstraint constraints;
 	private String fieldName;
 	private String typeName;
@@ -17,7 +16,7 @@ public class SimpleProperty extends Property {
 
 	/**
 	 * Gets constraints of simple type
-	 * 
+	 *
 	 * @return {@link SimpleTypeConstraint} containing constraints of simple type
 	 */
 	public SimpleTypeConstraint getConstraints() {
@@ -26,16 +25,16 @@ public class SimpleProperty extends Property {
 
 	/**
 	 * Gets field name containing this simple type
-	 * 
+	 *
 	 * @return field name
 	 */
 	public String getFieldName() {
 		return fieldName;
 	}
-	
+
 	/**
 	 * Gets name of this simple type
-	 * 
+	 *
 	 * @return type name
 	 */
 	public String getTypeName() {
@@ -44,7 +43,7 @@ public class SimpleProperty extends Property {
 
 	/**
 	 * Gets field type
-	 * 
+	 *
 	 * @return {@link Class} representing field type
 	 */
 	public Class<?> getFieldType() {
@@ -66,5 +65,5 @@ public class SimpleProperty extends Property {
 	public void setTypeName(String typeName) {
 		this.typeName = typeName;
 	}
-	
+
 }

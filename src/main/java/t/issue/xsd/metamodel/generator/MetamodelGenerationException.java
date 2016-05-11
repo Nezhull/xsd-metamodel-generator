@@ -1,4 +1,4 @@
-package lt.nezsoft.xsd.metamodel.generator;
+package t.issue.xsd.metamodel.generator;
 
 public class MetamodelGenerationException extends RuntimeException {
 	private static final long serialVersionUID = 9188703278887272926L;

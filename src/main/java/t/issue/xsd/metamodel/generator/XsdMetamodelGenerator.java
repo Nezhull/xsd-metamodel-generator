@@ -1,4 +1,4 @@
-package lt.nezsoft.xsd.metamodel.generator;
+package t.issue.xsd.metamodel.generator;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -16,13 +16,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
 
-import lt.nezsoft.xsd.metamodel.generator.model.ComplexProperty;
-import lt.nezsoft.xsd.metamodel.generator.model.ComplexType;
-import lt.nezsoft.xsd.metamodel.generator.model.CompositeProperty;
-import lt.nezsoft.xsd.metamodel.generator.model.CompositionType;
-import lt.nezsoft.xsd.metamodel.generator.model.SimpleProperty;
-import lt.nezsoft.xsd.metamodel.generator.model.SimpleTypeConstraint;
-import lt.nezsoft.xsd.metamodel.generator.utils.ReflectionUtils;
+import t.issue.xsd.metamodel.generator.model.ComplexProperty;
+import t.issue.xsd.metamodel.generator.model.ComplexType;
+import t.issue.xsd.metamodel.generator.model.CompositeProperty;
+import t.issue.xsd.metamodel.generator.model.CompositionType;
+import t.issue.xsd.metamodel.generator.model.SimpleProperty;
+import t.issue.xsd.metamodel.generator.model.SimpleTypeConstraint;
+import t.issue.xsd.metamodel.generator.utils.ReflectionUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
