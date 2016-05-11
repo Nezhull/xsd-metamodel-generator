@@ -59,12 +59,31 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
           <optimise>true</optimise>
           <debug>true</debug>
           <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>generate-test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <packageName>t.issue.xsd.metamodel.generator.test.model</packageName>
+          <schemaDirectory>src/test/resources/schemas</schemaDirectory>
         </configuration>
       </plugin>
     </plugins>

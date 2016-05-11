@@ -15,14 +15,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
-
-import t.issue.xsd.metamodel.generator.model.ComplexProperty;
-import t.issue.xsd.metamodel.generator.model.ComplexType;
-import t.issue.xsd.metamodel.generator.model.CompositeProperty;
-import t.issue.xsd.metamodel.generator.model.CompositionType;
-import t.issue.xsd.metamodel.generator.model.SimpleProperty;
-import t.issue.xsd.metamodel.generator.model.SimpleTypeConstraint;
-import t.issue.xsd.metamodel.generator.utils.ReflectionUtils;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,21 +40,29 @@ import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 
+import t.issue.xsd.metamodel.generator.model.ComplexProperty;
+import t.issue.xsd.metamodel.generator.model.ComplexType;
+import t.issue.xsd.metamodel.generator.model.CompositeProperty;
+import t.issue.xsd.metamodel.generator.model.CompositionType;
+import t.issue.xsd.metamodel.generator.model.SimpleProperty;
+import t.issue.xsd.metamodel.generator.model.SimpleTypeConstraint;
+import t.issue.xsd.metamodel.generator.utils.ReflectionUtils;
+
 /**
  * Xml schema definition metamodel generator class
- * 
+ *
  * @author Pavel
  */
 public class XsdMetamodelGenerator {
 	private static Log log = LogFactory.getLog(XsdMetamodelGenerator.class);
-	
+
 	private Map<Class<?>, ComplexType> complexTypes = new HashMap<Class<?>, ComplexType>();
-	
+
 	private EntityResolver entityResolver;
 	private ErrorHandler errorHandler;
-	
+
 	private boolean throwExceptions = true;
-	
+
 	private XSSchemaSet schemaSet = null;
 
 	public EntityResolver getEntityResolver() {
@@ -75,11 +76,11 @@ public class XsdMetamodelGenerator {
 	public boolean isThrowExceptions() {
 		return throwExceptions;
 	}
-	
+
 	public void setEntityResolver(EntityResolver entityResolver) {
 		this.entityResolver = entityResolver;
 	}
-	
+
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
 	}
@@ -87,42 +88,45 @@ public class XsdMetamodelGenerator {
 	public void setThrowExceptions(boolean throwExceptions) {
 		this.throwExceptions = throwExceptions;
 	}
-	
+
 	/**
 	 * Method generates jaxb metamodel, that maps xsd schema with java classes. If schema imports other schemas, it is required
 	 * to set {@link EntityResolver} that resolves schema names to physical files. If required it is possible to provide custom
 	 * {@link ErrorHandler} to handle internal generator errors
-	 * 
+	 *
 	 * @param xsdSchemaStream {@link InputStream} pointing to xsd schema
 	 * @param objectType {@link Class} of jaxb object representing xml
-	 * 
+	 *
 	 * @return {@link ComplexType} containing full metamodel of concrete xsd complex type
-	 * 
+	 *
 	 * @throws MetamodelGenerationException if not possible to map jaxb object to provided xsd schema
 	 */
 	public ComplexType generateMetamodel(InputStream xsdSchemaStream, Class<?> objectType) throws MetamodelGenerationException {
 		if (xsdSchemaStream == null) {
 			processError("Argument schemaStream is required");
 		}
-		
-		XSOMParser parser = new XSOMParser();
+
+		SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+		saxParserFactory.setNamespaceAware(true);
+
+		XSOMParser parser = new XSOMParser(saxParserFactory);
 		parser.setEntityResolver(entityResolver);
 		parser.setErrorHandler(errorHandler);
-		
+
 		InputSource source = new InputSource(xsdSchemaStream);
 		source.setSystemId("xsd-stream");
-		
+
 		try {
 			parser.parse(source);
 			schemaSet = parser.getResult();
 		} catch (SAXException e) {
 			processError(e);
 		}
-		
+
 		if (schemaSet == null) {
 			processError("No schemas in stream");
 		}
-		
+
 		XSComplexType mainType = getMainType(objectType);
 		if (mainType != null) {
 			try {
@@ -133,10 +137,10 @@ public class XsdMetamodelGenerator {
 		} else {
 			processError("Can not detect main xml type in class: " + objectType.getName());
 		}
-		
+
 		return null;
 	}
-	
+
 	private ComplexType buildType(Class<?> clazz, XSType xtype, String elementName) {
 		if (complexTypes.containsKey(clazz)) {
 			return complexTypes.get(clazz);
@@ -146,7 +150,7 @@ public class XsdMetamodelGenerator {
 			XSType someType = xtype != null ? xtype : getType(clazz, elementName);
 			if (someType != null && someType.isComplexType()) {
 				XSModelGroup modelGroup = extractModelGroup(someType.asComplexType());
-				XSComplexType complexType = xtype.asComplexType();				
+				XSComplexType complexType = xtype.asComplexType();
 				if (modelGroup != null) {
 					type.setContents(buildCompositProperty(clazz, modelGroup, complexType.getName()));
 				}
@@ -174,7 +178,7 @@ public class XsdMetamodelGenerator {
 			return type;
 		}
 	}
-	
+
 	private CompositeProperty buildCompositProperty(Class<?> clazz, XSModelGroup modelGroup, String parentTypeName) {
 		CompositeProperty compositeProperty = new CompositeProperty();
 		compositeProperty.setType(resolveCompositionType(modelGroup.getCompositor()));
@@ -193,7 +197,7 @@ public class XsdMetamodelGenerator {
 		}
 		return compositeProperty;
 	}
-	
+
 	private CompositionType resolveCompositionType(Compositor compositor) {
 		if (compositor == null) {
 			return null;
@@ -205,7 +209,7 @@ public class XsdMetamodelGenerator {
 		default: return null;
 		}
 	}
-	
+
 	private ComplexProperty buildComplexProperty(Class<?> clazz, XSElementDecl elementDecl, BigInteger minCount, BigInteger maxCount) {
 		XSComplexType complexType = elementDecl.getType().asComplexType();
 		Field field = getElementField(clazz, elementDecl.getName() != null && !elementDecl.getName().isEmpty() ? elementDecl.getName() : complexType.getName());
@@ -225,7 +229,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private Field getElementField(Class<?> clazz, String elementName) {
 		if (clazz != null) {
 			List<Field> fields = ReflectionUtils.getAllFields(clazz);
@@ -243,7 +247,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private Field getAttributeField(Class<?> clazz, String attributeName) {
 		if (clazz != null) {
 			List<Field> fields = ReflectionUtils.getAllFields(clazz);
@@ -261,7 +265,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private SimpleProperty buildSimpleProperty(Class<?> clazz, XSElementDecl elementDecl, BigInteger minCount, BigInteger maxCount) {
 		XSSimpleType simpleType = elementDecl.getType().asSimpleType();
 		Field field = getElementField(clazz, elementDecl.getName() != null && !elementDecl.getName().isEmpty() ? elementDecl.getName() : simpleType.getName());
@@ -278,7 +282,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private SimpleProperty buildBasicSimpleProperty(Field field, XSSimpleType simpleType) {
 		SimpleProperty simpleProperty = new SimpleProperty();
 		simpleProperty.setFieldName(field.getName());
@@ -287,7 +291,7 @@ public class XsdMetamodelGenerator {
 		simpleProperty.setConstraints(buildConstraint(simpleType));
 		return simpleProperty;
 	}
-	
+
 	public SimpleTypeConstraint buildConstraint(XSSimpleType simpleType) {
     	SimpleTypeConstraint constraint = new SimpleTypeConstraint();
     	List<String> enumeration = new ArrayList<String>();
@@ -319,7 +323,7 @@ public class XsdMetamodelGenerator {
         }
         return constraint;
 	}
-	
+
 	private List<XSFacet> extractAllFasets(XSSimpleType simpleType) {
 		List<XSFacet> facets = new ArrayList<XSFacet>();
 		List<XSSimpleType> allTypes = new ArrayList<XSSimpleType>();
@@ -338,7 +342,7 @@ public class XsdMetamodelGenerator {
 		}
 		return facets;
 	}
-	
+
 	private XSModelGroup extractModelGroup(XSComplexType complexType) {
 		XSParticle particle = complexType.getContentType().asParticle();
 		if (particle != null) {
@@ -346,12 +350,12 @@ public class XsdMetamodelGenerator {
 			if (term != null) {
 				if (term.isModelGroup()) {
 					return term.asModelGroup();
-				} 
+				}
 			}
 		}
 		return null;
 	}
-	
+
 	private XSType getType(Class<?> clazz, String elementName) {
 		XmlType type = clazz.getAnnotation(XmlType.class);
 		if (type != null) {
@@ -369,7 +373,7 @@ public class XsdMetamodelGenerator {
 			return null;
 		}
 	}
-	
+
 	private XSComplexType getMainType(Class<?> objectType) {
 		XmlType type = objectType.getAnnotation(XmlType.class);
 		XmlRootElement root = objectType.getAnnotation(XmlRootElement.class);
@@ -399,7 +403,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private XSType getType(String name) {
 		for (XSSchema schema : schemaSet.getSchemas()) {
 			XSType type = schema.getType(name);
@@ -409,7 +413,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private XSElementDecl getElement(String name) {
 		for (XSSchema schema : schemaSet.getSchemas()) {
 			XSElementDecl element = schema.getElementDecl(name);
@@ -419,7 +423,7 @@ public class XsdMetamodelGenerator {
 		}
 		return null;
 	}
-	
+
 	private void processError(String message) throws MetamodelGenerationException {
 		MetamodelGenerationException ex = new MetamodelGenerationException(message);
 		log.error(message, ex);
@@ -427,7 +431,7 @@ public class XsdMetamodelGenerator {
 			throw ex;
 		}
 	}
-	
+
 	private void processError(Throwable th) throws MetamodelGenerationException {
 		MetamodelGenerationException ex = new MetamodelGenerationException(th.getMessage());
 		log.error(th.getMessage(), ex);
@@ -435,5 +439,5 @@ public class XsdMetamodelGenerator {
 			throw ex;
 		}
 	}
-	
+
 }
